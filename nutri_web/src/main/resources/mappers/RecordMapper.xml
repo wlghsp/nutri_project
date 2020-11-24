@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="kr.co.bteam.myHealth.mapper.IRecordMapper">
+ 	<select id="selDate" resultType="kr.co.bteam.myHealth.domain.RecordDTO">
+	 	SELECT *
+		FROM iot_count
+		WHERE to_date(updatedate,'yy/MM/dd')=#{updatedate}
+		AND nickname = #{nickname}
+	 </select>
+	 
+	 <insert id="insert">
+		INSERT INTO iot_count(pushup, standdown, nickname)
+		VALUES(#{pushup},#{standdown}, #{nickname})
+	 </insert>
+	 
+	 <update id="update" >
+	 	UPDATE iot_count
+		SET pushup = #{pushup} , standdown = #{standdown}
+		WHERE to_date(updatedate,'yy/MM/dd')= #{updatedate}
+		AND nickname = #{nickname}
+	 </update>
+	 
+	 <select id="AllDate" resultType="kr.co.bteam.myHealth.domain.RecordDTO">
+	 	SELECT *
+		FROM iot_count
+		WHERE nickname = #{nickname}
+		ORDER BY updatedate
+	 </select>
+	 
+	  <select id="monthDate" resultType="kr.co.bteam.myHealth.domain.RecordDTO">
+	    SELECT *
+		FROM iot_count
+		WHERE nickname = #{nickname}
+    	AND to_char(updatedate,'yy/MM/dd') like #{updatedate}||'%'
+    	ORDER BY updatedate
+	 </select>
+	 
+ </mapper>

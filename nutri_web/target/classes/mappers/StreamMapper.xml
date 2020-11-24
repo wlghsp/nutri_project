@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="kr.co.bteam.streamView.mapper.StreamMapper">
+	<insert id="create">
+		INSERT INTO move_board (mvno, title, content, writer) 
+		VALUES(move_board_seq.nextval, #{title}, #{content}, #{writer})
+		<selectKey keyProperty="mvno" resultType="Integer" order="AFTER">
+			SELECT move_board_seq.currval FROM dual
+		</selectKey>
+	</insert>
+	
+	
+	<select id="read" resultType="kr.co.bteam.streamView.domain.StreamDTO">
+		SELECT mvno,
+		       title,
+		       content,
+		       writer,
+		       regdate,
+		       viewcnt
+		FROM move_board
+		WHERE mvno = #{mvno}
+	</select>
+	<update id="update">
+		UPDATE move_board
+		SET title=#{title}, content=#{content}
+		WHERE mvno = #{mvno}
+	</update>
+	 	
+	<delete id="delete">
+		DELETE FROM move_board
+		WHERE mvno = #{mvno}
+	</delete>
+	
+	<select id="listAllApp" resultType="kr.co.bteam.streamView.domain.StreamDTO">
+		<![CDATA[
+			SELECT mvno,
+				   title,
+				   content,
+				   writer,
+				   regdate,
+				   viewcnt,
+				   replycnt
+			FROM move_board
+			WHERE mvno > 0
+			ORDER BY mvno DESC, regdate DESC
+		]]>
+	</select>
+	
+	<sql id="criteria">
+					<trim prefix="(" suffix=") AND " prefixOverrides="OR">
+					<foreach item="type" collection="typeArr">
+						<trim prefix="OR">
+							<choose>
+								<when test="type == 'T'.toString()">
+									title LIKE '%'||#{keyword}||'%'
+								</when>
+								<when test="type == 'W'.toString()">
+									writer LIKE '%'||#{keyword}||'%'
+								</when>
+							</choose>
+						</trim>
+					</foreach>
+				</trim>
+	</sql>
+	
+	<select id="getListwithPaging" resultType="kr.co.bteam.streamView.domain.StreamDTO">
+		<![CDATA[
+			SELECT mvno,
+			       title,
+			       content,
+			       writer,
+			       regdate,
+			       viewcnt,
+			       replycnt
+			FROM (
+				SELECT /*+ INDEX_DESC(move_board IDX_move_board_PK) */
+					rownum rn,
+					mvno,
+					title,
+					content,
+					writer,
+					regdate,
+					viewcnt,
+					replycnt				
+				FROM move_board
+				WHERE
+				]]>
+				<include refid="criteria"></include>
+				<![CDATA[
+				 rownum <= #{pageNum} * #{amount}
+				)
+			WHERE rn > (#{pageNum} - 1) * #{amount}
+		]]>
+	</select>
+	
+	<select id="getTotalCnt" resultType="int">
+		SELECT count(*)
+		FROM move_board
+		WHERE mvno > 0
+	</select>
+	
+	<update id="updateViewCnt">
+		UPDATE move_board
+		SET viewcnt = viewcnt + 1
+		WHERE mvno = #{mvno}
+	</update>
+	
+	<update id="updateReplyCnt">
+		UPDATE move_board
+		SET replycnt = replycnt + #{amount}
+		WHERE mvno = #{mvno}
+	</update>
+	
+ </mapper>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.bteam.streamView.mapper.StreamReplyMapper">
+		
+	<insert id="insert">
+		INSERT INTO MOVE_REPLY(mvrno, mvno, replytext, replyer)
+		VALUES(MOVE_REPLY_SEQ.nextval, #{mvno}, #{replytext}, #{replyer})
+	</insert>
+	
+	<select id="read" resultType="kr.co.bteam.streamView.domain.StreamReplyDTO">
+		SELECT *
+		FROM MOVE_REPLY
+		WHERE mvrno = #{mvrno}
+	</select>
+	
+	<delete id="delete">
+		DELETE FROM MOVE_REPLY
+		WHERE mvrno = #{mvrno}
+	</delete>
+	
+	<update id="update">
+		UPDATE MOVE_REPLY
+		SET replytext = #{replytext}, pdatedate = sysdate
+		WHERE mvrno = #{mvrno}
+	</update>
+	
+	<select id="getListWithPaging" resultType="kr.co.bteam.streamView.domain.StreamReplyDTO">
+		<![CDATA[
+			SELECT mvrno,
+				   mvno,
+				   replytext,
+				   replyer,
+				   regdate,
+				   pdatedate
+			FROM (
+				SELECT /*+ INDEX(move_reply IDX_move_reply_PK) */
+					rownum rn,
+					mvrno,
+					mvno,
+					replytext,
+					replyer,
+					regdate,
+					pdatedate
+				FROM MOVE_REPLY
+				WHERE mvno = #{mvno}
+				AND mvrno > 0
+				AND rownum <= #{cri.pageNum} * #{cri.amount})
+			WHERE rn > (#{cri.pageNum} - 1) * #{cri.amount}
+		]]>
+	</select>
+	
+	<select id="getCountByBno" resultType="int">
+		<![CDATA[
+			SELECT count(mvrno)
+			FROM MOVE_REPLY
+			WHERE mvno = #{mvno}
+		]]>		
+	</select>
+	
+	
+</mapper>

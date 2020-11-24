@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.bteam.myHealth.mapper.IMyHealth_Mapper">
+	<select id="read" resultType="kr.co.bteam.myHealth.domain.MyHealthDTO">
+		SELECT * 
+		FROM nutrient_board
+		WHERE age = #{age}
+		AND gender =#{gender}
+	</select>
+	
+	<select id="selmemberApp" resultType="kr.co.bteam.member.domain.MemberDTO">
+		SELECT *
+		FROM member
+		WHERE nickname = #{nickname}
+	</select>
+</mapper>

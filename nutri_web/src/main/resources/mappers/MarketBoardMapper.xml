@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="kr.co.bteam.marketBoard.mapper.IMarketBoard_Mapper">
+ 	<insert id="create">
+		INSERT INTO market_board (m_no, m_title, m_content, m_writer) 
+		VALUES(market_board_seq.nextval, #{m_title}, #{m_content}, #{m_writer})
+		<selectKey keyProperty="m_no" resultType="Integer" order="AFTER">
+			SELECT market_board_seq.currval FROM dual
+		</selectKey>
+	</insert>
+	
+	<select id="read" resultType="kr.co.bteam.marketBoard.domain.MarketBoardDTO">
+		SELECT m_no,
+		       m_title,
+		       m_content,
+		       m_writer,
+		       m_regdate,
+		       m_viewcnt
+		FROM market_board
+		WHERE m_no = #{m_no}
+	</select>
+	
+	<update id="update">
+		UPDATE market_board
+		SET m_title=#{m_title}, m_content=#{m_content}
+		WHERE m_no = #{m_no}
+	</update>
+	
+	<delete id="delete">
+		DELETE FROM market_board
+		WHERE m_no = #{m_no}
+	</delete>
+	
+	<select id="listAllApp" resultType="kr.co.bteam.marketBoard.domain.MarketBoardDTO">
+		<![CDATA[
+			SELECT m_no,
+				   m_title,
+				   m_content,
+				   m_writer,
+				   m_regdate,
+				   m_viewcnt,
+				   m_replycnt
+			FROM market_board
+			WHERE m_no > 0
+			ORDER BY m_no DESC, m_regdate DESC
+		]]>
+	</select>
+	
+	<sql id="criteria">
+					<trim prefix="(" suffix=") AND " prefixOverrides="OR">
+					<foreach item="type" collection="typeArr">
+						<trim prefix="OR">
+							<choose>
+								<when test="type == 'T'.toString()">
+									m_title LIKE '%'||#{keyword}||'%'
+								</when>
+								<when test="type == 'C'.toString()">
+									m_content LIKE '%'||#{keyword}||'%'
+								</when>
+								<when test="type == 'W'.toString()">
+									m_writer LIKE '%'||#{keyword}||'%'
+								</when>
+							</choose>
+						</trim>
+					</foreach>
+				</trim>
+	</sql>
+	
+	<select id="getListwithPaging" resultType="kr.co.bteam.marketBoard.domain.MarketBoardDTO">
+		<![CDATA[
+			SELECT m_no,
+			       m_title,
+			       m_content,
+			       m_writer,
+			       m_regdate,
+			       m_viewcnt,
+			       m_replycnt
+			FROM (
+				SELECT /*+ INDEX_DESC(market_board IDX_market_board_PK) */
+					rownum rn,
+					m_no,
+					m_title,
+					m_content,
+					m_writer,
+					m_regdate,
+					m_viewcnt,
+					m_replycnt				
+				FROM market_board
+				WHERE
+				]]>
+				<include refid="criteria"></include>
+				<![CDATA[
+				 rownum <= #{pageNum} * #{amount}
+				)
+			WHERE rn > (#{pageNum} - 1) * #{amount}
+		]]>
+	</select>
+	
+	<select id="getTotalCnt" resultType="int">
+		SELECT count(*)
+		FROM market_board
+		WHERE m_no > 0
+	</select>
+	
+	<update id="updateViewCnt">
+		UPDATE market_board
+		SET m_viewcnt = m_viewcnt + 1
+		WHERE m_no = #{m_no}
+	</update>
+	
+	<update id="updateReplyCnt">
+		UPDATE market_board
+		SET m_replycnt = m_replycnt + #{amount}
+		WHERE m_no = #{m_no}
+	</update>
+	
+ </mapper>

@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.bteam.member.mapper.MemberMapper">
+	
+	<select id="login" resultType="kr.co.bteam.member.domain.MemberDTO">
+		SELECT * 
+		FROM member
+		WHERE email = #{email} 
+		AND passwd = #{passwd}		
+	</select>	
+
+	<insert id="insertMember">	
+		INSERT INTO member(meno, email, passwd, gender, nickname, dateofbirth)
+		VALUES(member_seq.nextval, #{email}, #{passwd}, #{gender}, #{nickname}, #{dateofbirth})  
+		<selectKey keyProperty="meno" resultType="Integer" order="AFTER">
+			SELECT member_seq.currval FROM dual
+		</selectKey>
+	</insert>		
+	
+		
+	<update id="setKey">
+		UPDATE member 
+		SET user_key = #{user_key}
+		WHERE nickname = #{nickname}		
+	</update>
+	
+	<update id="alter_userKey" parameterType="Map">
+		UPDATE member 
+		SET user_key = 'Y'
+		WHERE nickname = #{param1} and user_key=#{param2}	
+	</update>
+		
+	<select id="nickCheck" resultType="Integer">
+		SELECT count(*)
+		FROM member
+		WHERE nickname = #{nickname}	
+	</select>
+	
+	<select id="emailCheck" resultType="Integer">
+		SELECT count(*)
+		FROM member
+		WHERE email = #{email}	
+	</select>
+	
+	
+	<select id="selMember" resultType="kr.co.bteam.member.domain.MemberDTO">
+		SELECT * 
+		FROM member
+		WHERE email = #{email}		
+	</select>
+	
+	<select id="getMemberApp" resultType="kr.co.bteam.member.domain.MemberDTO">
+		SELECT * 
+		FROM member
+		WHERE nickname = #{nickname}		
+	</select>	
+	
+	<update id="modifyMemberApp">
+		UPDATE member
+		SET image_path = #{image_path}
+		WHERE nickname =#{nickname}
+	</update>
+	
+	
+	<update id="updateMember">
+		UPDATE member
+		SET gender = #{gender}, 			
+			dateofbirth = #{dateofbirth}
+		WHERE email = #{email} 
+	</update>
+	
+	<update id="updatePw">
+		UPDATE member
+		SET passwd = #{passwd} 			
+		WHERE email = #{email} 
+	</update>
+	
+	<update id="temporaryPw" parameterType="Map">
+		UPDATE member 
+		SET passwd = #{param3} 		
+		WHERE email = #{param1} and nickname=#{param2}	
+	</update>	
+	
+	
+	<select id="selAll" resultType="kr.co.bteam.member.domain.MemberDTO">
+		<![CDATA[
+			SELECT *
+			FROM member
+			WHERE meno > 0
+			ORDER BY meno DESC, indate DESC
+		]]>
+	</select>
+	
+	<delete id="banMember">
+		DELETE FROM member
+		WHERE meno = #{meno}
+	</delete>
+	
+	<sql id="criteria">
+					<trim prefix="(" suffix=") AND " prefixOverrides="OR">
+					<foreach item="type" collection="typeArr">
+						<trim prefix="OR">
+							<choose>
+								<when test="type == 'T'.toString()">
+									email LIKE '%'||#{keyword}||'%'
+								</when>
+								<when test="type == 'C'.toString()">
+									nickname LIKE '%'||#{keyword}||'%'
+								</when>								
+							</choose>
+						</trim>
+					</foreach>
+				</trim>
+	</sql>
+	
+	<select id="getListwithPaging" resultType="kr.co.bteam.member.domain.MemberDTO">
+		<![CDATA[
+			SELECT meno,
+			       email,
+			       passwd,
+			       gender,
+			       dateofbirth,
+			       nickname,
+			       indate,
+			       image_path
+			FROM (
+				SELECT /*+ INDEX_DESC(member IDX_member_PK) */
+					rownum rn,
+					meno,
+			        email,
+			        passwd,
+			        gender,
+			        dateofbirth,
+			        nickname,
+			        indate,
+			        image_path		
+				FROM member
+				WHERE
+				]]>
+				<include refid="criteria"></include>
+				<![CDATA[
+				 rownum <= #{pageNum} * #{amount}
+				)
+			WHERE rn > (#{pageNum} - 1) * #{amount}
+		]]>
+	</select>
+	
+	<select id="getTotalCnt" resultType="int">
+		SELECT count(*)
+		FROM member
+		WHERE meno > 0
+	</select>
+	
+	<delete id="delmember">
+		DELETE FROM member
+		WHERE email = #{email}		
+	</delete>
+
+</mapper>

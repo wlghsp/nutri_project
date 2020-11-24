@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.bteam.member.mapper.AdminMapper">
+	
+  <resultMap type="kr.co.bteam.member.domain.AdminVO" id="memberMap">
+    <id property="userid" column="userid"/>
+    <result property="userid" column="userid"/>
+    <result property="userpw" column="userpw"/>
+    <result property="userName" column="username"/>
+    <result property="regDate" column="regdate"/>
+    <result property="updateDate" column="updatedate"/>
+    <collection property="authList" resultMap="authMap">
+    </collection> 
+  </resultMap>
+  
+  <resultMap type="kr.co.bteam.member.domain.AuthVO" id="authMap">
+    <result property="userid" column="userid"/>
+    <result property="auth" column="auth"/>
+  </resultMap>
+  
+  <select id="read" resultMap="memberMap">
+	 SELECT adm.userid, userpw, username, enabled, regdate, updatedate, auth
+	 FROM admin adm LEFT OUTER JOIN admin_auth auth on adm.userid = auth.userid 
+	 WHERE adm.userid = #{userid} 
+  </select>
+	
+	
+		
+	
+</mapper>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="noticeBoardMapper">
+	  <insert id="create">
+			INSERT INTO notice_board (nbno, title, content, writer)
+			VALUES(n_board_seq.nextval, #{title}, #{content}, #{writer})
+			<selectKey keyProperty="nbno" resultType="Integer" order="AFTER">
+				SELECT n_board_seq.currval
+				FROM dual
+			</selectKey>
+		</insert>
+		
+		<select id="listforHome" resultType="kr.co.bteam.noticeBoard.domain.NoticeBoardDTO">
+			<![CDATA[
+				SELECT *
+				FROM notice_board
+				WHERE nbno > 0
+				ORDER BY nbno DESC, regdate DESC	
+			]]>		
+		</select>
+		
+		
+		<select id="read" resultType="kr.co.bteam.noticeBoard.domain.NoticeBoardDTO">
+			SELECT nbno,
+				   title,
+				   content,
+				   writer,
+				   regdate,
+				   viewcnt
+			FROM notice_board
+			WHERE nbno = #{nbno}
+		</select>
+		
+		<update id="update">
+			UPDATE notice_board
+			SET title = #{title},
+				content = #{content}
+			WHERE nbno = #{nbno}
+		</update>
+		
+		<delete id="delete">
+			DELETE FROM notice_board
+			WHERE nbno = #{nbno}
+		</delete>
+		
+		<!-- <select id="listAll" resultType="kr.co.bteam.noticeBoard.domain.NoticeBoardDTO">
+			<![CDATA[
+			SELECT nbno,
+				   title,
+				   content,
+				   writer,
+				   regdate,
+				   viewcnt
+			FROM notice_board
+			WHERE nbno > 0
+			ORDER BY nbno DESC, regdate DESC
+			]]>
+		</select> -->
+		
+		<sql id="criteria">
+	<trim prefix="(" suffix=") AND " prefixOverrides="OR">
+		<foreach item="type" collection="typeArr">
+			<trim prefix="OR">
+				<choose>
+					<when test="type == 'T'.toString()">
+						title LIKE '%'||#{keyword}||'%'
+					</when>
+					<when test="type == 'C'.toString()">
+						content LIKE '%'||#{keyword}||'%'
+					</when>
+					<when test="type == 'W'.toString()">
+						writer LIKE '%'||#{keyword}||'%'
+					</when>
+				</choose>
+
+			</trim>
+		</foreach>
+	</trim>
+</sql>
+		
+		
+		<!--페이징 기법  -->
+		<select id="getListWithPaging"  resultType="kr.co.bteam.noticeBoard.domain.NoticeBoardDTO">
+			<![CDATA[
+				SELECT nbno,
+					   title,
+					   content,
+				   	   writer,
+				   	   regdate,
+				   	   viewcnt				   
+				FROM(
+					SELECT /*+ INDEX_DESC(notice_board IDX_NOTICE_BOARD_PK) */
+						rownum rn,
+						nbno,
+					    title,
+					    content,
+				   	    writer,
+				   	    regdate,
+				   	    viewcnt
+					FROM notice_board
+					WHERE 
+					]]>
+					<include refid="criteria"></include>
+					<![CDATA[
+						  rownum <= #{pageNum} * #{amount}
+					)
+				WHERE rn > (#{pageNum} -1) * #{amount}
+			]]>
+		</select>
+		
+		<select id="getTotalCnt" resultType="int">
+			SELECT count(*)
+			FROM notice_board
+			WHERE nbno > 0
+		</select>
+  </mapper>

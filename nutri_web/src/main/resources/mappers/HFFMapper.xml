@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.bteam.api.mapper.IHFF_Mapper">
+	<insert id="Iinsert">
+		INSERT INTO HFF_INGREDIENT(INTK_LIMIT, SKLL_IX_IRDNT_RAWMTRL, IFTKN_ATNT_MATR_CN, DAY_INTK_HIGHLIMIT,
+								PRDCT_NM, CRET_DTM, DAY_INTK_LOWLIMIT, PRIMARY_FNCLTY, INTK_MEMO, INO)
+		VALUES(#{INTK_LIMIT}, #{SKLL_IX_IRDNT_RAWMTRL}, #{IFTKN_ATNT_MATR_CN}, #{DAY_INTK_HIGHLIMIT}, #{PRDCT_NM},
+			   #{CRET_DTM}, #{DAY_INTK_LOWLIMIT}, #{PRIMARY_FNCLTY}, #{INTK_MEMO}, HFF_INGREDIENT_seq.nextval)
+	</insert>
+
+	<insert id="Minsert">
+		INSERT INTO HFF_MATERIAL(HF_FNCLTY_MTRAL_RCOGN_NO, PRMS_DT, BSSH_NM, INDUTY_NM, ADDR, APLC_RAWMTRL_NM, 
+								FNCLTY_CN, DAY_INTK_CN, IFTKN_ATNT_MATR_CN, MNO)
+		VALUES(#{HF_FNCLTY_MTRAL_RCOGN_NO}, #{PRMS_DT}, #{BSSH_NM},	#{INDUTY_NM}, #{ADDR}, #{APLC_RAWMTRL_NM}, 
+			   #{FNCLTY_CN}, #{DAY_INTK_CN}, #{IFTKN_ATNT_MATR_CN}, HFF_MATERIAL_seq.nextval)
+	</insert>
+
+	<update id="Iupdate">
+		UPDATE HFF_INGREDIENT
+		SET INTK_LIMIT = #{INTK_LIMIT},
+			SKLL_IX_IRDNT_RAWMTRL =	#{SKLL_IX_IRDNT_RAWMTRL}, 
+			IFTKN_ATNT_MATR_CN = #{IFTKN_ATNT_MATR_CN},
+			DAY_INTK_HIGHLIMIT = #{DAY_INTK_HIGHLIMIT},
+			PRDCT_NM = #{PRDCT_NM},
+			CRET_DTM = #{CRET_DTM},
+			DAY_INTK_LOWLIMIT = #{DAY_INTK_LOWLIMIT}, 
+			PRIMARY_FNCLTY = #{PRIMARY_FNCLTY},
+			INTK_MEMO = #{INTK_MEMO}
+		WHERE INO = #{INO}
+	</update>
+
+	<update id="Mupdate">
+		UPDATE HFF_MATERIAL
+		SET HF_FNCLTY_MTRAL_RCOGN_NO = #{HF_FNCLTY_MTRAL_RCOGN_NO}, 
+			PRMS_DT = #{PRMS_DT}, 
+			BSSH_NM = #{BSSH_NM},
+			INDUTY_NM = #{INDUTY_NM},
+			ADDR =#{ADDR},
+			APLC_RAWMTRL_NM	= #{APLC_RAWMTRL_NM},
+			FNCLTY_CN = #{FNCLTY_CN},
+			DAY_INTK_CN	= #{DAY_INTK_CN},
+			IFTKN_ATNT_MATR_CN = #{IFTKN_ATNT_MATR_CN}
+		WHERE MNO =	#{MNO}
+	</update>
+	
+	<select id="iRead" resultType="kr.co.bteam.api.domain.HFF_IngredientDTO">
+		SELECT *
+		FROM HFF_INGREDIENT
+		WHERE INO = #{INO}
+	</select>
+	<select id="mRead" resultType="kr.co.bteam.api.domain.HFF_MaterialDTO">
+		SELECT *
+		FROM HFF_MATERIAL
+		WHERE MNO = #{MNO}
+	</select>
+	
+	<select id="iSearch"
+		resultType="kr.co.bteam.api.domain.HFF_IngredientDTO">
+		SELECT *
+		FROM HFF_INGREDIENT
+		WHERE SKLL_IX_IRDNT_RAWMTRL LIKE '%'||#{search}||'%'
+		   OR PRDCT_NM LIKE	'%'||#{search}||'%'
+		   OR PRIMARY_FNCLTY LIKE '%'||#{search}||'%'
+		   OR INTK_MEMO LIKE '%'||#{search}||'%'
+	</select>
+
+	<select id="mSearch"
+		resultType="kr.co.bteam.api.domain.HFF_MaterialDTO">
+		SELECT *
+		FROM HFF_MATERIAL
+		WHERE APLC_RAWMTRL_NM LIKE '%'|| #{search} ||'%'
+		   OR FNCLTY_CN LIKE '%'|| #{search} ||'%'
+		   OR IFTKN_ATNT_MATR_CN LIKE '%'|| #{search} ||'%'
+		   OR BSSH_NM LIKE '%'|| #{search} ||'%'
+	</select>
+
+	<select id="iListApp" resultType="kr.co.bteam.api.domain.HFF_IngredientDTO">
+		SELECT *
+		FROM HFF_INGREDIENT			
+	</select>
+
+	<select id="mListApp" resultType="kr.co.bteam.api.domain.HFF_MaterialDTO">
+		SELECT *
+		FROM HFF_MATERIAL
+	</select>
+
+	<select id="getITotalCnt" resultType="int">
+		SELECT count(*)
+		FROM
+		HFF_INGREDIENT
+		WHERE ino > 0
+	</select>
+
+	<select id="getMTotalCnt" resultType="int">
+		SELECT count(*)
+		FROM
+		HFF_MATERIAL
+		WHERE mno > 0
+	</select>
+	
+	
+	<sql id="iCriteria">
+					<trim prefix="(" suffix=") AND " prefixOverrides="OR">
+					<foreach item="type" collection="typeArr">
+						<trim prefix="OR">
+							<choose>
+								<when test="type == 'S'.toString()">
+									SKLL_IX_IRDNT_RAWMTRL LIKE '%'||#{keyword}||'%'
+								</when>
+								<when test="type == 'N'.toString()">
+									PRDCT_NM LIKE '%'||#{keyword}||'%'
+								</when>
+								<when test="type == 'F'.toString()">
+									PRIMARY_FNCLTY LIKE '%'||#{keyword}||'%'
+								</when>
+							</choose>
+						</trim>
+					</foreach>
+				</trim>
+	</sql>
+	
+	<select id="getIListWithPaging"  resultType="kr.co.bteam.api.domain.HFF_IngredientDTO">
+	<![CDATA[
+		SELECT INTK_LIMIT,
+			   SKLL_IX_IRDNT_RAWMTRL,
+			   IFTKN_ATNT_MATR_CN, 
+			   DAY_INTK_HIGHLIMIT,
+			   PRDCT_NM, 
+			   CRET_DTM, 
+			   DAY_INTK_LOWLIMIT, 
+			   PRIMARY_FNCLTY, 
+			   INTK_MEMO,
+			   INO			   
+		FROM(
+			SELECT /*+ INDEX_DESC(HFF_INGREDIENT IDX_HFF_INGREDIENT_PK) */
+				   rownum rn,
+				   INTK_LIMIT,
+			 	   SKLL_IX_IRDNT_RAWMTRL,
+			   	   IFTKN_ATNT_MATR_CN, 
+				   DAY_INTK_HIGHLIMIT,
+				   PRDCT_NM, 
+				   CRET_DTM, 
+				   DAY_INTK_LOWLIMIT, 
+				   PRIMARY_FNCLTY, 
+				   INTK_MEMO,
+				   INO		
+			FROM HFF_INGREDIENT
+		   	WHERE
+				]]>
+				<include refid="iCriteria"></include>
+				<![CDATA[
+				 rownum <= #{pageNum} * #{amount}
+				)
+			WHERE rn > (#{pageNum} - 1) * #{amount}
+		]]>
+	</select>
+	
+	<sql id="mCriteria">
+					<trim prefix="(" suffix=") AND " prefixOverrides="OR">
+					<foreach item="type" collection="typeArr">
+						<trim prefix="OR">
+							<choose>
+								<when test="type == 'S'.toString()">
+									APLC_RAWMTRL_NM LIKE '%'||#{keyword}||'%'
+								</when>
+								<when test="type == 'F'.toString()">
+									FNCLTY_CN LIKE '%'||#{keyword}||'%'
+								</when>
+								<when test="type == 'I'.toString()">
+									IFTKN_ATNT_MATR_CN LIKE '%'||#{keyword}||'%'
+								</when>								
+							</choose>
+						</trim>
+					</foreach>
+				</trim>
+	</sql>
+	
+	<select id="getMListWithPaging"  resultType="kr.co.bteam.api.domain.HFF_MaterialDTO">
+	<![CDATA[
+		SELECT HF_FNCLTY_MTRAL_RCOGN_NO, 
+			   PRMS_DT, 
+			   BSSH_NM, 
+			   INDUTY_NM, 
+			   ADDR, 
+			   APLC_RAWMTRL_NM,
+			   FNCLTY_CN, 
+			   DAY_INTK_CN, 
+			   IFTKN_ATNT_MATR_CN, 
+			   MNO			   
+		FROM(
+			SELECT /*+ INDEX_DESC(HFF_MATERIAL IDX_HFF_MATERIAL_PK) */
+				   rownum rn,
+				   HF_FNCLTY_MTRAL_RCOGN_NO, 
+				   PRMS_DT, 
+				   BSSH_NM, 
+				   INDUTY_NM, 
+				   ADDR, 
+				   APLC_RAWMTRL_NM,
+				   FNCLTY_CN, 
+				   DAY_INTK_CN, 
+				   IFTKN_ATNT_MATR_CN, 
+				   MNO	
+			FROM HFF_MATERIAL
+		    WHERE
+				]]>
+				<include refid="mCriteria"></include>
+				<![CDATA[
+				 rownum <= #{pageNum} * #{amount}
+				)
+			WHERE rn > (#{pageNum} - 1) * #{amount}
+		]]>
+	</select>
+</mapper>

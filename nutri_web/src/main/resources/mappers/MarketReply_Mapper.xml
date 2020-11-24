@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.bteam.marketBoard.mapper.IMarketReply_Mapper">
+		
+	<insert id="insert">
+		INSERT INTO MARKET_REPLY(rno, m_no, replytext, replyer)
+		VALUES(MARKET_REPLY_SEQ.nextval, #{m_no}, #{replytext}, #{replyer})
+	</insert>
+	
+	<select id="read" resultType="kr.co.bteam.marketBoard.domain.ReplyDTO">
+		SELECT *
+		FROM MARKET_REPLY
+		WHERE rno = #{rno}
+	</select>
+	
+	<delete id="delete">
+		DELETE FROM market_reply
+		WHERE rno = #{rno}
+	</delete>
+	
+	<update id="update">
+		UPDATE MARKET_REPLY
+		SET replytext = #{replytext}, updatedate = sysdate
+		WHERE rno = #{rno}
+	</update>
+	
+	<select id="getListWithPaging" resultType="kr.co.bteam.marketBoard.domain.ReplyDTO">
+		<![CDATA[
+			SELECT rno,
+				   m_no,
+				   replytext,
+				   replyer,
+				   regdate,
+				   updatedate
+			FROM (
+				SELECT /*+ INDEX(market_reply IDX_market_reply_PK) */
+					rownum rn,
+					rno,
+					m_no,
+					replytext,
+					replyer,
+					regdate,
+					updatedate
+				FROM MARKET_REPLY
+				WHERE m_no = #{m_no}
+				AND rno > 0
+				AND rownum <= #{cri.pageNum} * #{cri.amount})
+			WHERE rn > (#{cri.pageNum} - 1) * #{cri.amount}
+		]]>
+	</select>
+	
+	<select id="getCountByBno" resultType="int">
+		<![CDATA[
+			SELECT count(rno)
+			FROM MARKET_REPLY
+			WHERE m_no = #{m_no}
+		]]>		
+	</select>
+	
+	
+</mapper>
